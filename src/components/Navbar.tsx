@@ -11,13 +11,11 @@ import { SeatLocation } from '../types';
 
 interface NavbarProps {
   currentSeat: SeatLocation;
-  onOpenSeatSelector: () => void;
   onOpenAdmin: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentSeat,
-  onOpenSeatSelector,
   onOpenAdmin,
 }) => {
   return (
@@ -41,17 +39,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Tools: Current Locked Seat Pill & Admin Switch */}
         <div className="flex items-center gap-2">
-          {/* Active Seat Pill */}
-          <button
-            id="btn-switch-seat"
-            onClick={onOpenSeatSelector}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-950 hover:bg-neutral-800 border border-neutral-700/80 text-neutral-200 text-xs font-semibold transition-colors shadow-inner"
-            title="Click to simulate scanning a different seat QR code"
+          {/* Active Scanned Seat Indicator */}
+          <div
+            id="badge-active-seat"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200 text-xs font-semibold shadow-inner"
+            title="Armrest Scanned Seat"
           >
             <MapPin className="w-3.5 h-3.5 text-amber-400" />
             <span className="hidden sm:inline text-neutral-400 font-normal">Seat:</span>
             <span className="text-amber-400 font-bold">{currentSeat.screen} • {currentSeat.row}{currentSeat.seat}</span>
-          </button>
+          </div>
 
           {/* Discreet Admin Portal Link */}
           <button

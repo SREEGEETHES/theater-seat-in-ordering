@@ -23,7 +23,6 @@ import { orderStore } from '../../utils/storage';
 
 interface CustomerViewProps {
   currentSeat: SeatLocation;
-  onOpenSeatSelector: () => void;
 }
 
 const CATEGORIES = [
@@ -38,7 +37,6 @@ const CATEGORIES = [
 
 export const CustomerView: React.FC<CustomerViewProps> = ({
   currentSeat,
-  onOpenSeatSelector,
 }) => {
   const [menuList, setMenuList] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -169,13 +167,9 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button
-              onClick={onOpenSeatSelector}
-              className="flex-1 sm:flex-initial text-xs px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-200 font-medium transition-colors flex items-center justify-center gap-1.5"
-            >
-              <QrCode className="w-3.5 h-3.5 text-amber-400" />
-              <span>Simulate Scan Other Seat</span>
-            </button>
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-950/80 border border-neutral-800 text-[11px] text-neutral-400 font-mono">
+              <span>Direct In-Seat Delivery</span>
+            </div>
 
             {currentActiveOrder && (
               <button
@@ -390,7 +384,6 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
           onRemoveItem={handleRemoveItem}
           onClearCart={() => setCartItems([])}
           currentSeat={currentSeat}
-          onOpenSeatSelector={onOpenSeatSelector}
           onInitiatePayment={handleInitiatePayment}
         />
 

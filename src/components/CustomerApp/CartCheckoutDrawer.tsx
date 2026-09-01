@@ -24,7 +24,6 @@ interface CartCheckoutDrawerProps {
   onRemoveItem: (id: string) => void;
   onClearCart: () => void;
   currentSeat: SeatLocation;
-  onOpenSeatSelector: () => void;
   onInitiatePayment: (order: Order) => void;
 }
 
@@ -36,7 +35,6 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
   onRemoveItem,
   onClearCart,
   currentSeat,
-  onOpenSeatSelector,
   onInitiatePayment,
 }) => {
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('SEAT_SERVICE');
@@ -163,14 +161,10 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
 
                 {deliveryMode === 'SEAT_SERVICE' && (
                   <div className="mt-2 p-2.5 rounded-xl bg-neutral-950 border border-neutral-800/80 flex items-center justify-between text-xs">
-                    <span className="text-neutral-400">Armrest Sticker Location:</span>
-                    <button
-                      onClick={onOpenSeatSelector}
-                      className="text-amber-400 font-bold hover:underline flex items-center gap-1"
-                    >
-                      <span>{currentSeat.screen} • {currentSeat.row}-{currentSeat.seat}</span>
-                      <span className="text-[10px] text-neutral-500">(Change)</span>
-                    </button>
+                    <span className="text-neutral-400">Armrest Scanned Seat:</span>
+                    <span className="text-amber-400 font-bold font-mono">
+                      {currentSeat.screen} • Row {currentSeat.row}, Seat {currentSeat.seat}
+                    </span>
                   </div>
                 )}
               </div>
