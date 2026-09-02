@@ -2,21 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { CustomerView } from './components/CustomerApp/CustomerView';
 import { AdminPortal } from './components/AdminPortal/AdminPortal';
-import { SeatLocation } from './types';
+import { AdminLogin } from './components/AdminPortal/AdminLogin';
+import { NotFoundPage } from './components/NotFoundPage';
+import { SeatLocation, AdminSession } from './types';
 import { orderStore } from './utils/storage';
 import { soundManager } from './utils/audio';
+import { authStore } from './utils/authStore';
 
 export default function App() {
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
+  const [is404View, setIs404View] = useState<boolean>(false);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
+  const [session, setSession] = useState<AdminSession | null>(authStore.getSession());
 
-  // Default seat location (matches prompt example: Audi 3, Row F, Seat 12)
+  // Default seat location (Audi 3, Row F, Seat 12)
   const [currentSeat, setCurrentSeat] = useState<SeatLocation>({
     screen: 'Audi 3',
     row: 'F',
     seat: '12',
   });
+
+  // Subscribe to auth session changes
+  useEffect(() => {
+    const unsub = authStore.subscribe((s) => {
+      setSession(s);
+    });
+    return () => unsub();
+  }, []);
 
   // URL parsing for route & seat parameters
   useEffect(() => {
@@ -31,6 +44,15 @@ export default function App() {
         const rowParam = urlParams.get('row');
         const seatParam = urlParams.get('seat');
         const adminParam = urlParams.get('admin');
+
+        // Check for 404 routes
+        if (path === '/404' || hash === '#404') {
+          setIs404View(true);
+          setIsAdminView(false);
+          return;
+        }
+
+        setIs404View(false);
 
         // If seat parameters exist (from mobile camera QR scan), ALWAYS open customer view for that seat
         if (screenParam || rowParam || seatParam) {
@@ -55,6 +77,25 @@ export default function App() {
     }
   }, []);
 
+  // Update dynamic page title
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (is404View) {
+        document.title = '404 - Page Not Found | Snack Box';
+      } else if (isAdminView) {
+        if (!session) {
+          document.title = 'Staff & Admin Login | Snack Box Cinema Portal';
+        } else if (session.role === 'MASTER_ADMIN') {
+          document.title = 'Master Gateway Control & KYC | Snack Box';
+        } else {
+          document.title = `${session.theaterName || 'Theater'} - Kitchen KDS & POS | Snack Box`;
+        }
+      } else {
+        document.title = `Snack Box - In-Seat Dining (${currentSeat.screen}, Row ${currentSeat.row}, Seat ${currentSeat.seat})`;
+      }
+    }
+  }, [is404View, isAdminView, session, currentSeat]);
+
   // Update active orders count badge
   useEffect(() => {
     const updateCount = () => {
@@ -77,6 +118,7 @@ export default function App() {
   };
 
   const handleOpenAdmin = () => {
+    setIs404View(false);
     setIsAdminView(true);
     if (typeof window !== 'undefined') {
       window.history.pushState({}, '', '#admin');
@@ -87,6 +129,7 @@ export default function App() {
     if (seat) {
       setCurrentSeat(seat);
     }
+    setIs404View(false);
     setIsAdminView(false);
     if (typeof window !== 'undefined') {
       const targetUrl = seat
@@ -96,17 +139,37 @@ export default function App() {
     }
   };
 
+  const handleLogout = () => {
+    authStore.logout();
+  };
+
+  if (is404View) {
+    return (
+      <NotFoundPage
+        onGoHome={() => handleSwitchToCustomerView({ screen: 'Audi 3', row: 'F', seat: '12' })}
+        onGoAdmin={handleOpenAdmin}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans selection:bg-amber-500 selection:text-neutral-950">
       {isAdminView ? (
-        /* Admin View Portal with Kitchen KDS, Menu Management, Seat Armrest Sticker Studio & Architecture */
-        <AdminPortal
-          currentSeat={currentSeat}
-          soundEnabled={soundEnabled}
-          onToggleSound={handleToggleSound}
-          onSwitchToCustomerView={handleSwitchToCustomerView}
-          activeOrdersCount={activeOrdersCount}
-        />
+        session ? (
+          /* Logged In Admin Portal with Role-Based Tabs (Master vs Theater Admin) */
+          <AdminPortal
+            currentSeat={currentSeat}
+            soundEnabled={soundEnabled}
+            onToggleSound={handleToggleSound}
+            onSwitchToCustomerView={handleSwitchToCustomerView}
+            activeOrdersCount={activeOrdersCount}
+            session={session}
+            onLogout={handleLogout}
+          />
+        ) : (
+          /* Login Screen for Admin Portal */
+          <AdminLogin onLoginSuccess={(newSession) => setSession(newSession)} />
+        )
       ) : (
         /* Customer View (Pure customer dining & ordering interface) */
         <>
@@ -118,6 +181,7 @@ export default function App() {
           <main className="flex-1">
             <CustomerView
               currentSeat={currentSeat}
+              onOpenAdmin={handleOpenAdmin}
             />
           </main>
         </>

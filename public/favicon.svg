@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="popcorn-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="cup-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dc2626" />
+      <stop offset="100%" stop-color="#991b1b" />
+    </linearGradient>
+    <linearGradient id="stripe-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#fef3c7" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Soft Background Glow Circle -->
+  <circle cx="32" cy="32" r="30" fill="#171717" stroke="#f59e0b" stroke-width="2" />
+
+  <!-- Popcorn Kernels / Puffs -->
+  <circle cx="24" cy="22" r="7" fill="url(#popcorn-grad)" />
+  <circle cx="32" cy="18" r="8" fill="#fef08a" />
+  <circle cx="40" cy="22" r="7" fill="url(#popcorn-grad)" />
+  <circle cx="28" cy="15" r="6" fill="#fef08a" />
+  <circle cx="36" cy="15" r="6" fill="url(#popcorn-grad)" />
+
+  <!-- Popcorn Tub Base -->
+  <path d="M19 26 L23 52 C23.5 54 25 55 27 55 L37 55 C39 55 40.5 54 41 52 L45 26 Z" fill="url(#cup-grad)" />
+
+  <!-- Tub Stripes -->
+  <path d="M26 26 L28.5 55 L31.5 55 L30 26 Z" fill="url(#stripe-grad)" />
+  <path d="M34 26 L32.5 55 L35.5 55 L38 26 Z" fill="url(#stripe-grad)" />
+
+  <!-- Top Rim -->
+  <path d="M18 25 C18 24 19 23 20 23 L44 23 C45 23 46 24 46 25 L45 27 L19 27 Z" fill="#f59e0b" />
+
+  <!-- Sparkle Accent -->
+  <path d="M46 12 L47.5 15.5 L51 17 L47.5 18.5 L46 22 L44.5 18.5 L41 17 L44.5 15.5 Z" fill="#fbbf24" />
+</svg>

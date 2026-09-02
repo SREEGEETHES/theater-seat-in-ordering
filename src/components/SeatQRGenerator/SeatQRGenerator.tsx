@@ -91,7 +91,7 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CineSnack Armrest Stickers - ${auditoriumName}</title>
+  <title>Snack Box Armrest Stickers - ${auditoriumName}</title>
   <style>
     @page { size: A4; margin: 10mm; }
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -108,7 +108,7 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
       text-align: center;
       page-break-inside: avoid;
       display: flex;
-      flex-col;
+      flex-direction: column;
       align-items: center;
       justify-content: space-between;
       height: 180px;
@@ -130,21 +130,21 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
 <body>
   <div class="header-bar">
     <h1>Armrest Stickers: ${auditoriumName}</h1>
-    <p>Total: ${labels.length} stickers (${currentActiveBatchRows.length} Rows × ${batchSeatsPerRow} Seats per row) • 0% MDR UPI In-Seat Dining</p>
+    <p>Total: ${labels.length} stickers (${currentActiveBatchRows.length} Rows × ${batchSeatsPerRow} Seats per row) • Snack Box In-Seat Dining</p>
   </div>
   <div class="grid">
     ${labels
       .map(
         (l) => `
       <div class="sticker">
-        <div class="cinema-brand">🎬 GRAND CINEPLEX</div>
+        <div class="cinema-brand">🍿 SNACK BOX CINEMA</div>
         <div class="audi-tag">${l.screen}</div>
         <div class="seat-badge">ROW ${l.row} • SEAT ${l.seat}</div>
         <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
           l.url
         )}" alt="QR ${l.row}-${l.seat}" />
         <div class="instructions">SCAN TO ORDER SNACKS</div>
-        <div class="footer-note">0% MDR UPI Direct In-Seat Service</div>
+        <div class="footer-note">Fast In-Seat Delivery</div>
       </div>`
       )
       .join('')}
@@ -332,7 +332,7 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
                 <div className="flex items-center justify-between border-b-2 border-neutral-900 pb-2 mb-2">
                   <div className="flex items-center gap-1.5">
                     <Film className="w-4 h-4 text-amber-600" />
-                    <span className="font-black text-xs tracking-tight">GRAND CINEPLEX</span>
+                    <span className="font-black text-xs tracking-tight">SNACK BOX</span>
                   </div>
                   <span className="text-[9px] bg-neutral-900 text-white font-bold px-1.5 py-0.5 rounded">
                     IN-SEAT
@@ -366,7 +366,7 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
                   SCAN WITH PHONE TO ORDER SNACKS
                 </div>
                 <div className="text-[8px] text-neutral-600 mt-0.5">
-                  Delivered straight to your seat • 0% MDR UPI
+                  Delivered straight to your seat • Fast UPI Payment
                 </div>
               </div>
 

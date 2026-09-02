@@ -214,9 +214,35 @@ export const PrinterSettings: React.FC<PrinterSettingsProps> = ({ latestOrder })
             <div className="mt-4 space-y-4">
               {/* Host Input */}
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-                  Printer Host / IP Address
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                    Printer Host / IP Address
+                  </label>
+                  <div className="flex items-center gap-1.5 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHostInput('virtual-printer.online');
+                        setPortInput(9359);
+                        setTokenInput('epic-wolf-2904');
+                      }}
+                      className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-amber-300 transition-colors cursor-pointer"
+                    >
+                      Virtual Emulator
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHostInput('192.168.1.100');
+                        setPortInput(9100);
+                        setTokenInput('');
+                      }}
+                      className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors cursor-pointer"
+                    >
+                      Physical LAN (9100)
+                    </button>
+                  </div>
+                </div>
                 <div className="relative">
                   <input
                     type="text"
@@ -227,7 +253,7 @@ export const PrinterSettings: React.FC<PrinterSettingsProps> = ({ latestOrder })
                   />
                 </div>
                 <p className="mt-1 text-[11px] text-neutral-400">
-                  Default: <code className="text-amber-300">virtual-printer.online</code> for virtual testing, or local LAN IP (e.g. <code className="text-neutral-300">192.168.1.87</code>) when shipping.
+                  Use <code className="text-amber-300">virtual-printer.online</code> for web testing, or physical printer LAN IP (e.g. <code className="text-neutral-300">192.168.1.100</code>).
                 </p>
               </div>
 
@@ -245,23 +271,24 @@ export const PrinterSettings: React.FC<PrinterSettingsProps> = ({ latestOrder })
                     className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-mono"
                   />
                   <p className="mt-1 text-[11px] text-neutral-400">
-                    Online emulator: <strong className="text-neutral-200">9359</strong>. Standard physical hardware: <strong className="text-neutral-200">9100</strong>.
+                    Online emulator: <strong className="text-neutral-200">9359</strong> • Physical hardware: <strong className="text-neutral-200">9100</strong>
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5">
-                    Workspace / Security Token
+                  <label className="block text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <span>Workspace Token</span>
+                    <span className="text-[10px] text-neutral-500 font-normal">(optional)</span>
                   </label>
                   <input
                     type="text"
                     value={tokenInput}
                     onChange={(e) => setTokenInput(e.target.value)}
-                    placeholder="epic-wolf-2904"
+                    placeholder="Optional (Only for virtual emulator)"
                     className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 font-mono"
                   />
                   <p className="mt-1 text-[11px] text-neutral-400">
-                    Workspace: <code className="text-amber-300">epic-wolf-2904</code>
+                    Not required when printing to real physical hardware.
                   </p>
                 </div>
               </div>
@@ -377,7 +404,7 @@ export const PrinterSettings: React.FC<PrinterSettingsProps> = ({ latestOrder })
               </div>
               <div className="p-2.5 rounded-xl bg-neutral-950 border border-neutral-800/80 flex items-start gap-2">
                 <span className="text-amber-400 font-bold">3.</span>
-                <span><strong>Zero Drivers Required:</strong> The CineSnack backend directly builds standard raw ESC/POS byte streams with hardware auto-cut commands (<code className="text-neutral-400 font-mono">GS V 66 0</code>).</span>
+                <span><strong>Zero Drivers Required:</strong> The Snack Box backend directly builds standard raw ESC/POS byte streams with hardware auto-cut commands (<code className="text-neutral-400 font-mono">GS V 66 0</code>).</span>
               </div>
             </div>
           </div>
@@ -400,8 +427,8 @@ export const PrinterSettings: React.FC<PrinterSettingsProps> = ({ latestOrder })
             {/* Thermal paper slip styling */}
             <div className="mt-4 p-4 rounded-2xl bg-neutral-100 text-neutral-950 font-mono text-[11px] leading-tight shadow-inner border border-neutral-300 select-text overflow-x-auto">
               <div className="text-center font-bold text-xs pb-1 border-b border-dashed border-neutral-400">
-                GRAND CINEPLEX<br/>
-                KITCHEN DISPATCH &amp; F&amp;B TICKET
+                SNACK BOX F&amp;B<br/>
+                KITCHEN DISPATCH &amp; ORDER TICKET
               </div>
 
               <div className="text-center py-2 border-b border-dashed border-neutral-400">
@@ -413,8 +440,8 @@ export const PrinterSettings: React.FC<PrinterSettingsProps> = ({ latestOrder })
               <div className="py-2 border-b border-dashed border-neutral-400 text-[10px]">
                 Order ID: #ORD-8821<br/>
                 Placed At: {new Date().toLocaleTimeString()}<br/>
-                Payment: 0% MDR UPI (PAID)<br/>
-                NPCI Ref: NPCI992837418293
+                Payment: UPI (PAID)<br/>
+                Txn Ref: NPCI992837418293
               </div>
 
               <div className="py-2 border-b border-dashed border-neutral-400">
@@ -430,7 +457,7 @@ export const PrinterSettings: React.FC<PrinterSettingsProps> = ({ latestOrder })
 
               <div className="text-center text-[10px] pt-3 text-neutral-600 border-t border-dashed border-neutral-400 mt-2">
                 ** DISPATCH TO AUDITORIUM RUNNER **<br/>
-                CineSnack Direct POS-80 System
+                Snack Box Kitchen POS
               </div>
             </div>
           </div>

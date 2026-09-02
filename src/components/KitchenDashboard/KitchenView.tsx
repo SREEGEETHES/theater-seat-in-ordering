@@ -100,15 +100,16 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
 
   // Metrics calculation
   const activeOrders = orders.filter(o => o.payment_status === 'PAID' && o.progress_status !== 'DELIVERED' && o.progress_status !== 'CANCELLED');
-  const preparingCount = orders.filter(o => o.progress_status === 'PREPARING').length;
-  const readyCount = orders.filter(o => o.progress_status === 'READY_OR_DISPATCHED').length;
-  const completedToday = orders.filter(o => o.progress_status === 'DELIVERED').length;
+  const preparingCount = orders.filter(o => o.payment_status === 'PAID' && o.progress_status === 'PREPARING').length;
+  const readyCount = orders.filter(o => o.payment_status === 'PAID' && o.progress_status === 'READY_OR_DISPATCHED').length;
+  const completedToday = orders.filter(o => o.payment_status === 'PAID' && o.progress_status === 'DELIVERED').length;
   const totalRevenue = orders
     .filter(o => o.payment_status === 'PAID')
     .reduce((sum, o) => sum + o.total_amount, 0);
 
-  // Filter orders
+  // Filter orders - Strictly only display PAID orders in the Kitchen display!
   const filteredOrders = orders.filter(order => {
+    if (order.payment_status !== 'PAID') return false;
     if (filterTab === 'seat' && order.delivery_mode !== 'SEAT_SERVICE') return false;
     if (filterTab === 'counter' && order.delivery_mode !== 'COUNTER_PICKUP') return false;
     if (filterTab === 'completed' && order.progress_status !== 'DELIVERED') return false;
@@ -151,7 +152,7 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
             <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
               ₹{totalRevenue}
             </div>
-            <span className="text-[11px] text-emerald-400/80 font-medium">₹0 MDR Fees Saved!</span>
+            <span className="text-[11px] text-emerald-400/80 font-medium">Direct UPI Settlement</span>
           </div>
 
           <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-3.5 shadow-md flex flex-col justify-between">

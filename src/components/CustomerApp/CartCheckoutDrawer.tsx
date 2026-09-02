@@ -38,8 +38,8 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
   onInitiatePayment,
 }) => {
   const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('SEAT_SERVICE');
-  const [customerName, setCustomerName] = useState<string>('Rahul Kumar');
-  const [customerPhone, setCustomerPhone] = useState<string>('9876543210');
+  const [customerName, setCustomerName] = useState<string>('');
+  const [customerPhone, setCustomerPhone] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
 
   if (!isOpen) return null;
@@ -183,7 +183,7 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
                         type="text"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="e.g. Rahul K"
+                        placeholder="Enter your name"
                         className="w-full bg-neutral-900 border border-neutral-700 rounded-xl pl-8 pr-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
                       />
                     </div>
@@ -196,7 +196,7 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
                         type="tel"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="e.g. 9876543210"
+                        placeholder="Enter 10-digit mobile"
                         className="w-full bg-neutral-900 border border-neutral-700 rounded-xl pl-8 pr-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
                       />
                     </div>
@@ -281,12 +281,12 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
                 <div className="flex justify-between text-neutral-400">
                   <span className="flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>0% MDR UPI Fee</span>
+                    <span>UPI Payment Fee</span>
                   </span>
                   <span className="text-emerald-400 font-semibold">₹0.00 (FREE)</span>
                 </div>
                 <div className="flex justify-between text-neutral-400">
-                  <span>Convenience & Delivery Surcharge</span>
+                  <span>In-Seat Delivery Surcharge</span>
                   <span className="text-emerald-400 font-semibold">₹0.00 (FREE)</span>
                 </div>
                 <div className="pt-2 border-t border-neutral-800 flex justify-between font-bold text-sm text-white">
@@ -303,15 +303,15 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
           <div className="p-4 border-t border-neutral-800 bg-neutral-950">
             <button
               onClick={handleProceedToPay}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-extrabold text-sm shadow-xl shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-neutral-950 font-extrabold text-sm shadow-xl shadow-amber-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Pay via 0% MDR UPI</span>
+              <span>Pay via UPI</span>
               <span>•</span>
               <span>₹{totalAmount.toFixed(2)}</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </button>
             <p className="text-[11px] text-center text-neutral-400 mt-2">
-              Opens Google Pay, PhonePe or Paytm with instant bank settlement.
+              Opens Google Pay, PhonePe or Paytm for instant payment.
             </p>
           </div>
         )}

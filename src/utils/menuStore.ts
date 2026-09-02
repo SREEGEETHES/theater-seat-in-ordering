@@ -68,7 +68,11 @@ class MenuStore {
     };
   }
 
-  public getMenu(): MenuItem[] {
+  public getMenu(theaterId?: string): MenuItem[] {
+    if (theaterId) {
+      const theaterItems = this.menu.filter((item) => !item.theater_id || item.theater_id === theaterId);
+      return theaterItems.length > 0 ? theaterItems : [...this.menu];
+    }
     return [...this.menu];
   }
 

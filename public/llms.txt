@@ -1,0 +1,17 @@
+# Snack Box - In-Seat Cinema Dining & Direct UPI Payment Gateway
+
+> High-speed in-seat cinema dining, instant UPI QR food ordering, real-time kitchen display system (KDS), thermal ESC/POS ticket printing, and 0% MDR direct PayU merchant settlement.
+
+## Core Architecture
+- **In-Seat Mobile Dining**: QR scan to seat mapping (Screen / Audi, Row, Seat). Direct ordering without app download.
+- **0% MDR Payment Flow**: Instant UPI Intent & Dynamic QR via direct PayU integration with SHA-512 cryptographic verification. Direct T+2 bank settlement to theater corporate account.
+- **Kitchen Display System (KDS)**: Live 3-stage kitchen workflow (PENDING -> PREPARING -> READY -> DELIVERED) with audible audio chimes.
+- **ESC/POS Virtual Thermal Printer**: 58mm/80mm ticket generation with QR verification token and itemized breakdown.
+- **Master Merchant & Admin Control**: Multi-theater onboarding, 2-step verified KYC & PayU key management, automated owner settlement reporting, and staff credential management.
+
+## API Endpoints
+- `POST /api/payu/create-payment`: Generates SHA-512 cryptographic hash for UPI intent transaction.
+- `POST /api/payu/webhook`: Asynchronous PayU webhook handler with reverse hash signature verification.
+- `GET /api/theaters`: Returns active theaters with screen configurations.
+- `PUT /api/theaters/:id/kyc`: Updates merchant KYC and banking details (2-step verified).
+- `PUT /api/theaters/:id/payu`: Updates PayU gateway configuration (2-step verified).

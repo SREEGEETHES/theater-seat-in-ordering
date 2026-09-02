@@ -3,7 +3,6 @@ import {
   Search, 
   ShoppingBag, 
   Sparkles, 
-  QrCode, 
   MapPin, 
   Flame, 
   Plus, 
@@ -23,6 +22,7 @@ import { orderStore } from '../../utils/storage';
 
 interface CustomerViewProps {
   currentSeat: SeatLocation;
+  onOpenAdmin?: () => void;
 }
 
 const CATEGORIES = [
@@ -37,6 +37,7 @@ const CATEGORIES = [
 
 export const CustomerView: React.FC<CustomerViewProps> = ({
   currentSeat,
+  onOpenAdmin,
 }) => {
   const [menuList, setMenuList] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -52,12 +53,12 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
 
   // Load and listen to menu updates from menuStore
   useEffect(() => {
-    setMenuList(menuStore.getMenu());
+    setMenuList(menuStore.getMenu(currentSeat.theater_id));
     const unsub = menuStore.subscribe(() => {
-      setMenuList(menuStore.getMenu());
+      setMenuList(menuStore.getMenu(currentSeat.theater_id));
     });
     return () => unsub();
-  }, []);
+  }, [currentSeat.theater_id]);
 
   // Subscribe to order store for real-time changes to the user's active order
   useEffect(() => {
@@ -144,44 +145,6 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-neutral-950 text-neutral-100 py-4 sm:py-6 px-3 sm:px-6">
       <div className="max-w-4xl mx-auto">
-        {/* Armrest QR Location Banner */}
-        <div className="bg-gradient-to-r from-amber-500/15 via-neutral-900 to-neutral-900 border border-amber-500/30 rounded-2xl p-3 sm:p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
-              <QrCode className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-amber-400 font-semibold uppercase tracking-wider">
-                  Armrest QR Scanned
-                </span>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded font-mono font-bold">
-                  LOCKED
-                </span>
-              </div>
-              <div className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-amber-400" />
-                <span>{currentSeat.screen} • Row {currentSeat.row}, Seat {currentSeat.seat}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-950/80 border border-neutral-800 text-[11px] text-neutral-400 font-mono">
-              <span>Direct In-Seat Delivery</span>
-            </div>
-
-            {currentActiveOrder && (
-              <button
-                onClick={() => setCurrentActiveOrder(null)}
-                className="text-xs px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-medium transition-colors"
-              >
-                Back to Menu
-              </button>
-            )}
-          </div>
-        </div>
-
         {/* If user has an active in-flight order, display tracker */}
         {currentActiveOrder ? (
           <ActiveOrderTracker
@@ -394,6 +357,12 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
           onClose={() => setIsPaymentModalOpen(false)}
           onPaymentSuccess={handlePaymentSuccess}
         />
+
+        {/* Footer */}
+        <div className="mt-12 pt-6 border-t border-neutral-900 text-center text-xs text-neutral-500 pb-8 space-y-1">
+          <p>© {new Date().getFullYear()} Snack Box. All rights reserved.</p>
+          <p className="text-[11px] text-neutral-600">Powered by N4X</p>
+        </div>
       </div>
     </div>
   );

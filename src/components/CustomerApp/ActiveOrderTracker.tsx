@@ -31,7 +31,7 @@ export const ActiveOrderTracker: React.FC<ActiveOrderTrackerProps> = ({
     {
       key: 'RECEIVED',
       label: 'Order & UPI Paid',
-      desc: '0% MDR Bank Settlement Verified',
+      desc: 'Payment Verified & Received',
       icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />,
     },
     {
@@ -70,6 +70,17 @@ export const ActiveOrderTracker: React.FC<ActiveOrderTrackerProps> = ({
 
   return (
     <div className="space-y-4 animate-fadeIn">
+      {/* Top Bar with Back to Menu Link */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onNewOrder}
+          className="text-xs px-3.5 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 text-amber-400 font-semibold transition-colors flex items-center gap-1.5"
+        >
+          <span>← Back to Menu</span>
+        </button>
+        <span className="text-xs text-neutral-400 font-medium">Live Order Tracking</span>
+      </div>
+
       {/* Token Hero Banner */}
       <div className="bg-gradient-to-br from-amber-500/20 via-neutral-900 to-neutral-900 border border-amber-500/30 rounded-3xl p-6 text-center shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -225,7 +236,7 @@ export const ActiveOrderTracker: React.FC<ActiveOrderTrackerProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-neutral-800 mb-4">
               <div className="flex items-center gap-2">
                 <Printer className="w-4 h-4 text-amber-400" />
-                <h4 className="font-bold text-sm text-white">Live Virtual Receipt Printer</h4>
+                <h4 className="font-bold text-sm text-white">Snack Box Kitchen POS</h4>
               </div>
               <button
                 onClick={() => setShowReceiptModal(false)}

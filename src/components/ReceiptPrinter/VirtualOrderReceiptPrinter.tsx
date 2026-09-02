@@ -87,14 +87,14 @@ export const VirtualOrderReceiptPrinter: React.FC<VirtualOrderReceiptPrinterProp
                 <Film className="w-3.5 h-3.5" />
               </div>
               <span className="text-xs font-bold text-neutral-200 tracking-tight">
-                CINESNACK POS-80
+                SNACK BOX KITCHEN POS
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={handleReprint}
-                className="text-[11px] px-2 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors flex items-center gap-1"
+                className="text-[11px] px-2 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors flex items-center gap-1 cursor-pointer"
                 title="Feed & Reprint"
               >
                 <RotateCcw className="w-3 h-3 text-amber-400" />
@@ -123,7 +123,7 @@ export const VirtualOrderReceiptPrinter: React.FC<VirtualOrderReceiptPrinterProp
                   </div>
                 </div>
                 <div className="text-right text-[10px] text-neutral-500 font-mono">
-                  0% MDR UPI
+                  UPI DIRECT
                 </div>
               </div>
 
@@ -140,13 +140,13 @@ export const VirtualOrderReceiptPrinter: React.FC<VirtualOrderReceiptPrinterProp
             {/* Header */}
             <div className="text-center pb-2 border-b border-dashed border-neutral-400 space-y-0.5">
               <div className="font-extrabold text-sm tracking-tight text-neutral-900">
-                GRAND CINEPLEX F&B
+                SNACK BOX F&B
               </div>
               <div className="text-[10px] text-neutral-600">
                 IN-SEAT DIGITAL DINING RECEIPT
               </div>
               <div className="text-[10px] text-neutral-500 font-mono">
-                CINEMA AUDI SNACK ENGINE
+                KITCHEN DISPATCH SYSTEM
               </div>
             </div>
 
@@ -174,12 +174,12 @@ export const VirtualOrderReceiptPrinter: React.FC<VirtualOrderReceiptPrinterProp
                 <span className="text-neutral-900">{order.time_display}</span>
               </div>
               <div className="flex justify-between">
-                <span>Payment Mode:</span>
-                <span className="font-bold text-neutral-900">0% MDR UPI</span>
+                <span>Payment:</span>
+                <span className="font-bold text-neutral-900">UPI (PAID)</span>
               </div>
               {order.upi_txn_id && (
                 <div className="flex justify-between text-[10px]">
-                  <span>NPCI Ref:</span>
+                  <span>Txn Ref:</span>
                   <span className="font-mono text-neutral-700">{order.upi_txn_id.slice(-10)}</span>
                 </div>
               )}
@@ -210,10 +210,6 @@ export const VirtualOrderReceiptPrinter: React.FC<VirtualOrderReceiptPrinterProp
                 <span>TOTAL PAID (INR):</span>
                 <span>₹{order.total_amount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-[10px] text-emerald-800 font-semibold">
-                <span>UPI MDR FEE:</span>
-                <span>₹0.00 (100% Direct)</span>
-              </div>
             </div>
 
             {/* Footer */}
@@ -230,25 +226,6 @@ export const VirtualOrderReceiptPrinter: React.FC<VirtualOrderReceiptPrinterProp
           </ReceiptPrinter.Paper>
         </ReceiptPrinter.Output>
       </ReceiptPrinter.Root>
-
-      {/* Action buttons below printer */}
-      <div className="mt-4 flex items-center justify-center gap-2 max-w-sm w-full px-4">
-        <button
-          onClick={() => printThermalReceiptInBrowser(order)}
-          className="flex-1 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-700 text-neutral-200 text-xs font-semibold flex items-center justify-center gap-1.5 shadow"
-        >
-          <Printer className="w-3.5 h-3.5 text-amber-400" />
-          <span>Browser Print</span>
-        </button>
-
-        <button
-          onClick={handleDownloadSlipText}
-          className="flex-1 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-700 text-neutral-200 text-xs font-semibold flex items-center justify-center gap-1.5 shadow"
-        >
-          <Download className="w-3.5 h-3.5 text-sky-400" />
-          <span>Save .TXT Slip</span>
-        </button>
-      </div>
     </div>
   );
 };

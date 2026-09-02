@@ -1,13 +1,16 @@
 import { Order, OrderProgressStatus, PaymentStatus } from '../types';
 import { soundManager } from './audio';
+import { printerStore } from './printerStore';
 
-const STORAGE_KEY = 'cinesnack_orders_v1';
+const STORAGE_KEY = 'cinesnack_orders_saas_v2';
 const BROADCAST_CHANNEL_NAME = 'cinesnack_realtime_events';
 
-// Default initial orders matching the user prompt examples (e.g. Audi 3 Seat F12 / Screen 02 Seat M-14)
+// Default initial sample orders per theater
 const INITIAL_SAMPLE_ORDERS: Order[] = [
   {
     order_id: '#10924',
+    theater_id: 'th_grand_cineplex',
+    theater_name: 'Grand Cineplex (Downtown IMAX)',
     token_number: 84,
     screen_number: 'Screen 02',
     seat_location: 'M-14',
@@ -19,7 +22,7 @@ const INITIAL_SAMPLE_ORDERS: Order[] = [
     customer_name: 'Rahul K',
     customer_phone: '9876543210',
     total_amount: 360,
-    upi_txn_id: 'UPI908123984712',
+    upi_txn_id: 'NPCI908123984712',
     items: [
       { name: 'Cheese Popcorn', quantity: 1, price: 240, size: 'Large (250g)' },
       { name: 'Chilled Pepsi Fountain Soda', quantity: 1, price: 120, size: 'Regular (400ml)' },
@@ -27,6 +30,8 @@ const INITIAL_SAMPLE_ORDERS: Order[] = [
   },
   {
     order_id: '#10925',
+    theater_id: 'th_grand_cineplex',
+    theater_name: 'Grand Cineplex (Downtown IMAX)',
     token_number: 85,
     screen_number: 'Audi 3',
     seat_location: 'F-12',
@@ -38,15 +43,17 @@ const INITIAL_SAMPLE_ORDERS: Order[] = [
     customer_name: 'Ananya Sharma',
     customer_phone: '9845123456',
     total_amount: 499,
-    upi_txn_id: 'UPI908123984713',
+    upi_txn_id: 'NPCI908123984713',
     items: [
       { name: 'Blockbuster Duo Combo', quantity: 1, price: 499 },
     ],
   },
   {
     order_id: '#10926',
+    theater_id: 'th_snackbox_koramangala',
+    theater_name: 'Snack Box Cinemas',
     token_number: 86,
-    screen_number: 'Screen 01',
+    screen_number: 'Screen 1',
     seat_location: 'Counter',
     delivery_mode: 'COUNTER_PICKUP',
     payment_status: 'PAID',
@@ -56,7 +63,7 @@ const INITIAL_SAMPLE_ORDERS: Order[] = [
     customer_name: 'Vikram Mehta',
     customer_phone: '9920011223',
     total_amount: 220,
-    upi_txn_id: 'UPI908123984714',
+    upi_txn_id: 'NPCI908123984714',
     items: [
       { name: 'Loaded Cheesy Jalapeño Nachos', quantity: 1, price: 220 },
     ],
@@ -68,6 +75,7 @@ class OrderStore {
   private listeners: Set<() => void> = new Set();
   private broadcastChannel: BroadcastChannel | null = null;
   private currentDailyToken: number = 86;
+  private eventSource: EventSource | null = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -96,7 +104,26 @@ class OrderStore {
           }
         };
       }
+
+      // Connect to real-time Server-Sent Events (SSE) stream from backend
+      this.initEventSource();
     }
+  }
+
+  private initEventSource() {
+    try {
+      if (typeof window !== 'undefined' && 'EventSource' in window) {
+        this.eventSource = new EventSource('/api/events');
+        this.eventSource.addEventListener('order:paid', (event: MessageEvent) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.order_id) {
+              this.markOrderAsPaidViaWebhook(data.order_id, data.txnid || `NPCI_${Date.now()}`);
+            }
+          } catch {}
+        });
+      }
+    } catch {}
   }
 
   private saveToStorage() {
@@ -114,9 +141,7 @@ class OrderStore {
           this.orders = JSON.parse(stored);
           this.notify();
         }
-      } catch {
-        // silent
-      }
+      } catch {}
     }
   }
 
@@ -131,7 +156,10 @@ class OrderStore {
     };
   }
 
-  public getOrders(): Order[] {
+  public getOrders(theaterId?: string): Order[] {
+    if (theaterId) {
+      return this.orders.filter((o) => o.theater_id === theaterId);
+    }
     return [...this.orders];
   }
 
@@ -151,6 +179,7 @@ class OrderStore {
 
     const newOrder: Order = {
       ...orderData,
+      theater_id: orderData.theater_id || 'th_grand_cineplex',
       order_id: orderId,
       token_number: nextToken,
       order_timestamp: now.toISOString(),
@@ -194,10 +223,17 @@ class OrderStore {
         progress_status: 'RECEIVED',
         upi_txn_id: upiTxnId,
       };
+      const paidOrder = this.orders[idx];
       this.saveToStorage();
-      this.broadcastChannel?.postMessage({ type: 'NEW_PAID_ORDER', order: this.orders[idx] });
+      this.broadcastChannel?.postMessage({ type: 'NEW_PAID_ORDER', order: paidOrder });
       soundManager.playNewOrderChime();
-      return this.orders[idx];
+
+      // Trigger automatic thermal print job if enabled
+      if (printerStore.getConfig().autoPrintOnPayment) {
+        printerStore.dispatchPrintJob(paidOrder).catch(console.warn);
+      }
+
+      return paidOrder;
     }
     return null;
   }
@@ -211,3 +247,4 @@ class OrderStore {
 }
 
 export const orderStore = new OrderStore();
+

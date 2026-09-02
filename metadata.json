@@ -1,6 +1,6 @@
 {
-  "name": "CineSnack In-Seat Ordering",
-  "description": "0% MDR UPI In-Seat & Counter Cinema Snack Ordering with real-time Kitchen Dashboard, ESC/POS Thermal Printing, and dynamic Seat QR routing.",
+  "name": "Snack Box",
+  "description": "In-Seat Cinema Dining & Direct PayU UPI Gateway with Real-Time KDS and Thermal POS Printing",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
