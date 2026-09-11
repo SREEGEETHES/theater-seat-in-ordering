@@ -1,0 +1,12 @@
+# Robots.txt for Snack Box Cinema In-Seat Dining System
+User-agent: *
+Allow: /
+Allow: /menu
+Allow: /order
+
+# Restrict Private Admin & Gateway Endpoints from Public Crawlers
+Disallow: /api/payu/webhook
+Disallow: /api/theaters/
+
+# Sitemaps
+Sitemap: https://ais-dev-j5oqq43ujtpqlqdcyvh4k5-601676744631.asia-southeast1.run.app/sitemap.xml

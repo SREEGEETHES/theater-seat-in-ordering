@@ -1,0 +1,6 @@
+{
+  "name": "Snack Box",
+  "description": "In-Seat Cinema Dining & Direct PayU UPI Gateway with Real-Time KDS and Thermal POS Printing",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
