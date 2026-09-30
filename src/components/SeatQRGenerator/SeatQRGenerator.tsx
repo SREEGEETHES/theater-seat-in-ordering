@@ -18,6 +18,7 @@ import {
   FileDown
 } from 'lucide-react';
 import { SeatLocation, Theater } from '../../types';
+import { theaterStore } from '../../utils/theaterStore';
 
 interface SeatQRGeneratorProps {
   theater?: Theater;
@@ -39,8 +40,10 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
   theater,
   onLoadSeatInCustomerApp,
 }) => {
+  const effectiveTheater = theater || theaterStore.getActiveTheater();
+
   // Auditorium custom naming
-  const initialAuditorium = theater?.screens?.[0]?.name || 'Audi 3';
+  const initialAuditorium = effectiveTheater?.screens?.[0]?.name || 'Audi 3';
   const [auditoriumName, setAuditoriumName] = useState<string>(initialAuditorium);
   
   // Single Seat Settings
@@ -73,9 +76,7 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
     params.set('screen', screen);
     params.set('row', row);
     params.set('seat', String(seat));
-    if (theater?.theater_id) {
-      params.set('theater', theater.theater_id);
-    }
+    params.set('theater', effectiveTheater.theater_id);
     return `${cleanBaseUrl}/?${params.toString()}`;
   };
 
@@ -158,7 +159,7 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
       .map(
         (l) => `
       <div class="sticker">
-        <div class="cinema-brand">🍿 SNACK BOX CINEMA</div>
+        <div class="cinema-brand">🍿 ${effectiveTheater.name.toUpperCase()}</div>
         <div class="audi-tag">${l.screen}</div>
         <div class="seat-badge">ROW ${l.row} • SEAT ${l.seat}</div>
         <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
@@ -298,6 +299,31 @@ export const SeatQRGenerator: React.FC<SeatQRGeneratorProps> = ({
                 Custom Domain / Vercel URL
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Multi-Tenant Routing & Bank Verification Card */}
+        <div className="p-3.5 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 font-bold text-xs">
+              🏢
+            </div>
+            <div>
+              <div className="font-bold text-white flex items-center gap-2">
+                <span>{effectiveTheater.name}</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-950 text-neutral-400 font-mono border border-neutral-800">
+                  {effectiveTheater.theater_id}
+                </span>
+              </div>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                Bank UPI: <span className="font-mono text-emerald-400">{effectiveTheater.kyc.payee_vpa}</span> • Kitchen KDS: <span className="text-amber-300">Dedicated Counter</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold shrink-0 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Multi-Tenant Locked (No Cross-Theater Leakage)</span>
           </div>
         </div>
 

@@ -110,27 +110,42 @@ const ALGORITHM = 'aes-256-gcm';
 const RAW_KEY = process.env.DATA_ENCRYPTION_KEY || 'e83a9d4f2b7c109584a7e2b10984c3f5d2e1a09876543210abcdef0123456789';
 const ENCRYPTION_KEY = Buffer.from(RAW_KEY.slice(0, 64).padEnd(64, '0'), 'hex');
 
-export function encryptSecret(plainText: string): { ciphertext: string; iv: string; authTag: string } {
+export function encryptSecret(plainText: string): string {
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
   let encrypted = cipher.update(plainText, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   const authTag = cipher.getAuthTag().toString('hex');
-  return {
-    ciphertext: encrypted,
-    iv: iv.toString('hex'),
-    authTag,
-  };
+  // Serialized form: iv:authTag:ciphertext
+  return `${iv.toString('hex')}:${authTag}:${encrypted}`;
 }
 
-export function decryptSecret(ciphertext: string, ivHex: string, authTagHex: string): string {
+export function decryptSecret(cipherOrSerialized: string, ivHex?: string, authTagHex?: string): string {
   try {
-    const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, Buffer.from(ivHex, 'hex'));
-    decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
-    let decrypted = decipher.update(ciphertext, 'hex', 'utf8');
+    let finalIv: string;
+    let finalTag: string;
+    let finalCipher: string;
+
+    if (ivHex && authTagHex) {
+      finalCipher = cipherOrSerialized;
+      finalIv = ivHex;
+      finalTag = authTagHex;
+    } else if (cipherOrSerialized.includes(':')) {
+      const parts = cipherOrSerialized.split(':');
+      finalIv = parts[0];
+      finalTag = parts[1];
+      finalCipher = parts[2];
+    } else {
+      // Plain text or unencrypted fallback
+      return cipherOrSerialized;
+    }
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, Buffer.from(finalIv, 'hex'));
+    decipher.setAuthTag(Buffer.from(finalTag, 'hex'));
+    let decrypted = decipher.update(finalCipher, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
   } catch (err) {
-    return '[Decryption Failed]';
+    return cipherOrSerialized;
   }
 }

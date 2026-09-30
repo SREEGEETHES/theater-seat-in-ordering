@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -13,7 +13,11 @@ import {
   Utensils, 
   Image as ImageIcon,
   DollarSign,
-  AlertTriangle
+  AlertTriangle,
+  Upload,
+  Camera,
+  HelpCircle,
+  Wand2
 } from 'lucide-react';
 import { MenuItem, Theater } from '../../types';
 import { menuStore } from '../../utils/menuStore';
@@ -28,16 +32,53 @@ const CATEGORIES: { id: MenuItem['category']; label: string }[] = [
   { id: 'desserts', label: '🍫 Desserts' },
 ];
 
-const PRESET_IMAGES = [
-  { label: 'Cheese Popcorn', url: 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=600&auto=format&fit=crop&q=80' },
-  { label: 'Salted Popcorn', url: 'https://images.unsplash.com/photo-1585647347483-22b66260dfff?w=600&auto=format&fit=crop&q=80' },
-  { label: 'Caramel Popcorn', url: 'https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?w=600&auto=format&fit=crop&q=80' },
-  { label: 'Movie Combo', url: 'https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?w=600&auto=format&fit=crop&q=80' },
-  { label: 'Loaded Nachos', url: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=600&auto=format&fit=crop&q=80' },
-  { label: 'Fountain Soda', url: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=600&auto=format&fit=crop&q=80' },
-  { label: 'Crispy Nuggets', url: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=600&auto=format&fit=crop&q=80' },
-  { label: 'Choco Lava Cake', url: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format&fit=crop&q=80' },
+export const PRESET_IMAGES: { label: string; category: string; url: string }[] = [
+  // Popcorn
+  { label: 'Cheese Popcorn', category: 'popcorn', url: 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Salted Popcorn', category: 'popcorn', url: 'https://images.unsplash.com/photo-1585647347483-22b66260dfff?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Caramel Popcorn', category: 'popcorn', url: 'https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Peri-Peri Popcorn', category: 'popcorn', url: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&auto=format&fit=crop&q=80' },
+  
+  // Combos
+  { label: 'Movie Feast Combo', category: 'combos', url: 'https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Popcorn & Soda Duet', category: 'combos', url: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600&auto=format&fit=crop&q=80' },
+  
+  // Nachos
+  { label: 'Loaded Nachos', category: 'nachos', url: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Salsa & Tortilla', category: 'nachos', url: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=600&auto=format&fit=crop&q=80' },
+  
+  // Beverages
+  { label: 'Fountain Soda / Coke', category: 'beverages', url: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Iced Cold Coffee', category: 'beverages', url: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Mint Mojito', category: 'beverages', url: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Mineral Water', category: 'beverages', url: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=600&auto=format&fit=crop&q=80' },
+  
+  // Hot Bites
+  { label: 'French Fries', category: 'hot_bites', url: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Crispy Nuggets', category: 'hot_bites', url: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Cinema Hot Dog', category: 'hot_bites', url: 'https://images.unsplash.com/photo-1619740455993-9e612b1af08a?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Gourmet Burger', category: 'hot_bites', url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Crispy Samosa', category: 'hot_bites', url: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Paneer / Roll Wrap', category: 'hot_bites', url: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=600&auto=format&fit=crop&q=80' },
+  
+  // Desserts
+  { label: 'Choco Lava Cake', category: 'desserts', url: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Chocolate Brownie', category: 'desserts', url: 'https://images.unsplash.com/photo-1607920592519-bab4d7db727d?w=600&auto=format&fit=crop&q=80' },
+  { label: 'Ice Cream Cup', category: 'desserts', url: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=600&auto=format&fit=crop&q=80' },
 ];
+
+/**
+ * Optimizes an Unsplash or external food image URL with optimal dimensions and format
+ */
+export function optimizeFoodImageUrl(url: string): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (trimmed.includes('images.unsplash.com')) {
+    const baseUrl = trimmed.split('?')[0];
+    return `${baseUrl}?w=600&auto=format&fit=crop&q=80`;
+  }
+  return trimmed;
+}
 
 interface AdminMenuManagerProps {
   theater?: Theater;
@@ -53,6 +94,67 @@ export const AdminMenuManager: React.FC<AdminMenuManagerProps> = ({ theater }) =
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [isNewItem, setIsNewItem] = useState<boolean>(false);
+  
+  // Image handling state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
+  const [selectedPresetCategory, setSelectedPresetCategory] = useState<string>('all');
+  const [imageError, setImageError] = useState<boolean>(false);
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      alert('Selected image is too large. Please select an image under 15MB.');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // Compress and resize using canvas to max 800px width/height
+        const maxDim = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          setFormData((prev) => ({ ...prev, image: compressedDataUrl }));
+          setImageError(false);
+        }
+        setIsUploadingImage(false);
+      };
+      img.onerror = () => {
+        setIsUploadingImage(false);
+        alert('Could not process this image file. Please try another image.');
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAutoOptimizeUrl = () => {
+    if (!formData.image) return;
+    const optimized = optimizeFoodImageUrl(formData.image);
+    setFormData((prev) => ({ ...prev, image: optimized }));
+    setImageError(false);
+  };
   
   // Form fields
   const [formData, setFormData] = useState<{
@@ -437,27 +539,142 @@ export const AdminMenuManager: React.FC<AdminMenuManagerProps> = ({ theater }) =
                 />
               </div>
 
-              {/* Image Picker */}
-              <div>
-                <label className="block text-neutral-400 font-semibold mb-1">Image URL</label>
-                <input
-                  type="url"
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-amber-500"
-                />
-                <div className="mt-1.5 flex items-center gap-1.5 overflow-x-auto pb-1 text-[10px]">
-                  <span className="text-neutral-500 shrink-0">Presets:</span>
-                  {PRESET_IMAGES.map((preset, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, image: preset.url })}
-                      className="px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 hover:text-white shrink-0 hover:bg-neutral-700"
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
+              {/* Food Image Selection, Upload & Preset Gallery */}
+              <div className="space-y-2.5 p-3 rounded-2xl bg-neutral-950 border border-neutral-800">
+                <div className="flex items-center justify-between">
+                  <label className="text-neutral-300 font-bold flex items-center gap-1.5 text-xs">
+                    <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Food Photo &amp; Presentation</span>
+                  </label>
+                  <span className="text-[10px] text-neutral-500">600×450 Recommended</span>
+                </div>
+
+                {/* Preview & Upload Bar */}
+                <div className="flex items-center gap-3">
+                  <div className="w-20 h-16 rounded-xl bg-neutral-900 border border-neutral-700 overflow-hidden shrink-0 relative flex items-center justify-center">
+                    {formData.image && !imageError ? (
+                      <img
+                        src={formData.image}
+                        alt="Preview"
+                        onError={() => setImageError(true)}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-neutral-600 flex flex-col items-center justify-center text-[10px]">
+                        <Utensils className="w-5 h-5 mb-0.5" />
+                        <span>No Photo</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 space-y-1.5">
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileUpload}
+                      className="hidden"
+                    />
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingImage}
+                        className="px-3 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 hover:text-white font-semibold text-xs flex items-center gap-1.5 border border-neutral-700 transition-colors cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{isUploadingImage ? 'Processing...' : 'Upload from Device'}</span>
+                      </button>
+
+                      {formData.image?.includes('unsplash') && (
+                        <button
+                          type="button"
+                          onClick={handleAutoOptimizeUrl}
+                          className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-semibold text-xs flex items-center gap-1 border border-amber-500/30 transition-colors cursor-pointer"
+                          title="Auto-formats dimensions and compression for fast loading"
+                        >
+                          <Wand2 className="w-3 h-3 text-amber-400" />
+                          <span>Optimize URL</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="text-[10px] text-neutral-400">
+                      Upload from phone/camera or paste a web link below.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Direct URL Input */}
+                <div>
+                  <input
+                    type="url"
+                    value={formData.image}
+                    onChange={(e) => {
+                      setFormData({ ...formData, image: e.target.value });
+                      setImageError(false);
+                    }}
+                    placeholder="https://images.unsplash.com/... or paste image link"
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-white text-[11px] focus:outline-none focus:border-amber-500 font-mono"
+                  />
+                </div>
+
+                {/* Cinema Food Presets Section */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+                      Cinema Food Presets (1-Click Apply):
+                    </span>
+                  </div>
+
+                  {/* Category Pills for Presets */}
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[10px] scrollbar-thin">
+                    {['all', 'popcorn', 'combos', 'nachos', 'beverages', 'hot_bites', 'desserts'].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setSelectedPresetCategory(cat)}
+                        className={`px-2 py-0.5 rounded-lg uppercase tracking-wider font-semibold transition-all shrink-0 cursor-pointer ${
+                          selectedPresetCategory === cat
+                            ? 'bg-amber-500 text-neutral-950'
+                            : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200'
+                        }`}
+                      >
+                        {cat.replace('_', ' ')}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Presets Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-32 overflow-y-auto pr-1">
+                    {PRESET_IMAGES
+                      .filter((p) => selectedPresetCategory === 'all' || p.category === selectedPresetCategory)
+                      .map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, image: preset.url });
+                            setImageError(false);
+                          }}
+                          className={`flex items-center gap-1.5 p-1 rounded-lg border text-left transition-all cursor-pointer ${
+                            formData.image === preset.url
+                              ? 'bg-amber-500/15 border-amber-500 text-amber-300'
+                              : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-850 hover:text-white'
+                          }`}
+                        >
+                          <img
+                            src={preset.url}
+                            alt={preset.label}
+                            className="w-7 h-7 rounded object-cover shrink-0"
+                            loading="lazy"
+                          />
+                          <span className="text-[10px] font-medium truncate">{preset.label}</span>
+                        </button>
+                      ))}
+                  </div>
                 </div>
               </div>
 

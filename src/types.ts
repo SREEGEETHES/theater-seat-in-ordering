@@ -74,6 +74,7 @@ export interface Theater {
 export interface MenuItem {
   id: string;
   theater_id?: string;
+  station_id?: 'POPCORN_WARMER' | 'BEVERAGE_DISPENSER' | 'FRY_STATION' | 'MAIN_KITCHEN';
   name: string;
   category: 'popcorn' | 'combos' | 'nachos' | 'beverages' | 'hot_bites' | 'desserts';
   description: string;
@@ -91,6 +92,7 @@ export interface CartItem {
   id: string;
   menuItemId: string;
   theater_id?: string;
+  station_id?: 'POPCORN_WARMER' | 'BEVERAGE_DISPENSER' | 'FRY_STATION' | 'MAIN_KITCHEN';
   name: string;
   price: number;
   quantity: number;
@@ -114,6 +116,7 @@ export interface OrderItem {
   price: number;
   size?: string;
   flavor?: string;
+  station_id?: 'POPCORN_WARMER' | 'BEVERAGE_DISPENSER' | 'FRY_STATION' | 'MAIN_KITCHEN';
 }
 
 export interface Order {
@@ -139,6 +142,8 @@ export interface Order {
   notes?: string;
   printed_at?: string;
   print_status?: 'PRINTED' | 'FAILED' | 'QUEUED';
+  refund_status?: 'NONE' | 'REQUESTED' | 'PROCESSED' | 'FAILED';
+  refund_arn?: string;
 }
 
 export interface PayUPaymentRequest {

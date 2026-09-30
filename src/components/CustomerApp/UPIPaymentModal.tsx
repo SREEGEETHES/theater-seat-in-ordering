@@ -11,7 +11,9 @@ import {
   Zap, 
   Check, 
   ChevronRight,
-  Shield
+  Shield,
+  AlertTriangle,
+  RotateCcw
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Order, PayUPaymentResponse } from '../../types';
@@ -75,6 +77,8 @@ export const UPIPaymentModal: React.FC<UPIPaymentModalProps> = ({
   const [isLoadingPayment, setIsLoadingPayment] = useState<boolean>(true);
   const [copiedVpa, setCopiedVpa] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(300); // 5 mins countdown
+  const [paymentFailed, setPaymentFailed] = useState<boolean>(false);
+  const [failureReason, setFailureReason] = useState<string>('');
 
   const currentTheater = order?.theater_id 
     ? theaterStore.getTheaterById(order.theater_id) || theaterStore.getActiveTheater()
@@ -84,15 +88,18 @@ export const UPIPaymentModal: React.FC<UPIPaymentModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setTimeLeft(300);
+      setPaymentFailed(false);
+      setFailureReason('');
     }
   }, [isOpen]);
 
-  // Auto-close modal when timer hits 00:00 (returns to user page)
+  // When timer expires, show friendly recovery screen instead of abrupt kickout
   useEffect(() => {
-    if (isOpen && timeLeft <= 0) {
-      onClose();
+    if (isOpen && timeLeft <= 0 && !paymentFailed) {
+      setPaymentFailed(true);
+      setFailureReason('UPI Payment session timed out after 5 minutes. Your selected snacks remain safe in your cart.');
     }
-  }, [timeLeft, isOpen, onClose]);
+  }, [timeLeft, isOpen, paymentFailed]);
 
   // Initialize server-side PayU transaction
   useEffect(() => {
@@ -217,6 +224,45 @@ export const UPIPaymentModal: React.FC<UPIPaymentModalProps> = ({
   }, [isOpen, order, payuData?.txnid, onPaymentSuccess]);
 
   if (!isOpen || !order) return null;
+
+  if (paymentFailed) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-neutral-950/85 backdrop-blur-md animate-fadeIn">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl max-w-md w-full p-6 text-neutral-100 shadow-2xl text-center space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto">
+            <AlertTriangle className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg font-bold text-white">Payment Incomplete</h3>
+          <p className="text-xs text-neutral-400 max-w-xs mx-auto leading-relaxed">
+            {failureReason || 'Your bank transaction did not complete in time. No worries—your cart was not cleared!'}
+          </p>
+          <div className="p-3 bg-neutral-950 rounded-2xl border border-neutral-800 text-xs text-neutral-300">
+            <span>Order Reference: </span>
+            <span className="font-mono text-amber-400">{order.order_id}</span>
+            <div className="text-[11px] text-neutral-500 mt-0.5">Amount: ₹{order.total_amount.toFixed(2)}</div>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={() => {
+                setPaymentFailed(false);
+                setTimeLeft(300);
+              }}
+              className="flex-1 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-amber-500/20"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Retry Payment</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="flex-1 py-3 rounded-2xl bg-neutral-800 hover:bg-neutral-750 text-neutral-200 font-semibold text-xs border border-neutral-700 cursor-pointer"
+            >
+              <span>Back to Cart</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const activePayeeVpa = currentTheater.kyc.payee_vpa || 'snackbox.pos@icici';
   const activePayeeName = currentTheater.kyc.legal_business_name || currentTheater.name;

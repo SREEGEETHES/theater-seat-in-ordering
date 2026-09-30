@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { MenuItem, CartItem, SeatLocation, Order } from '../../types';
 import { menuStore } from '../../utils/menuStore';
+import { cartStore } from '../../utils/cartStore';
 import { ItemCustomizerModal } from './ItemCustomizerModal';
 import { CartCheckoutDrawer } from './CartCheckoutDrawer';
 import { UPIPaymentModal } from './UPIPaymentModal';
@@ -48,10 +49,21 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [isCustomizerOpen, setIsCustomizerOpen] = useState<boolean>(false);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => cartStore.getItems());
   const [activePaymentOrder, setActivePaymentOrder] = useState<Order | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [currentActiveOrder, setCurrentActiveOrder] = useState<Order | null>(null);
+
+  // Sync cartStore with theater and local state
+  useEffect(() => {
+    cartStore.setTheaterId(currentSeat.theater_id);
+    setCartItems(cartStore.getItems());
+
+    const unsubCart = cartStore.subscribe(() => {
+      setCartItems(cartStore.getItems());
+    });
+    return () => unsubCart();
+  }, [currentSeat.theater_id]);
 
   // Load and listen to menu updates from menuStore with live backend polling
   useEffect(() => {
@@ -106,30 +118,21 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
       quantity: 1,
       isVeg: item.isVeg,
       image: item.image,
+      station_id: item.station_id,
     };
-    setCartItems(prev => [...prev, newItem]);
+    cartStore.addItem(newItem);
   };
 
   const handleAddToCartFromModal = (cartItem: CartItem) => {
-    setCartItems(prev => [...prev, cartItem]);
+    cartStore.addItem(cartItem);
   };
 
   const handleUpdateQuantity = (id: string, delta: number) => {
-    setCartItems(prev =>
-      prev
-        .map(item => {
-          if (item.id === id) {
-            const newQty = item.quantity + delta;
-            return newQty > 0 ? { ...item, quantity: newQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean) as CartItem[]
-    );
+    cartStore.updateQuantity(id, delta);
   };
 
   const handleRemoveItem = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+    cartStore.removeItem(id);
   };
 
   const handleInitiatePayment = (order: Order) => {
@@ -140,7 +143,7 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
 
   const handlePaymentSuccess = (paidOrder: Order) => {
     setIsPaymentModalOpen(false);
-    setCartItems([]);
+    cartStore.clearCart();
     setCurrentActiveOrder(paidOrder);
   };
 

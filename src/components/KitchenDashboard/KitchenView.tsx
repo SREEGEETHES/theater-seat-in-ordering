@@ -41,6 +41,7 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
   const currentTheater = theater || theaterStore.getActiveTheater();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filterTab, setFilterTab] = useState<'all' | 'seat' | 'counter' | 'completed'>('all');
+  const [stationFilter, setStationFilter] = useState<'ALL' | 'POPCORN_WARMER' | 'BEVERAGE_DISPENSER' | 'FRY_STATION' | 'MAIN_KITCHEN'>('ALL');
   const [screenFilter, setScreenFilter] = useState<string>('all');
   const [autoPrintEnabled, setAutoPrintEnabled] = useState<boolean>(false);
   const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<Order | null>(null);
@@ -99,6 +100,17 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
     if (filterTab === 'completed' && order.progress_status !== 'DELIVERED') return false;
     if (filterTab !== 'completed' && order.progress_status === 'DELIVERED') return false;
     if (screenFilter !== 'all' && order.screen_number !== screenFilter) return false;
+    if (stationFilter !== 'ALL') {
+      const hasStationItem = order.items.some(item => {
+        const inferred = item.station_id || (
+          item.name.toLowerCase().includes('popcorn') ? 'POPCORN_WARMER' :
+          item.name.toLowerCase().includes('coke') || item.name.toLowerCase().includes('pepsi') || item.name.toLowerCase().includes('sprite') || item.name.toLowerCase().includes('shake') || item.name.toLowerCase().includes('water') ? 'BEVERAGE_DISPENSER' :
+          item.name.toLowerCase().includes('fries') || item.name.toLowerCase().includes('nuggets') || item.name.toLowerCase().includes('nachos') ? 'FRY_STATION' : 'MAIN_KITCHEN'
+        );
+        return inferred === stationFilter;
+      });
+      if (!hasStationItem) return false;
+    }
     return true;
   });
 
@@ -212,21 +224,38 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
             </button>
           </div>
 
-          {/* Screen / Audi Dropdown */}
-          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
-            <label className="text-xs text-neutral-400 font-medium whitespace-nowrap">Auditorium:</label>
-            <select
-              value={screenFilter}
-              onChange={(e) => setScreenFilter(e.target.value)}
-              className="bg-neutral-950 border border-neutral-700 text-xs rounded-xl px-3 py-1.5 text-neutral-200 focus:outline-none focus:border-amber-500"
-            >
-              <option value="all">All Screens</option>
-              {uniqueScreens.map((scr) => (
-                <option key={scr} value={scr}>
-                  {scr}
-                </option>
-              ))}
-            </select>
+          {/* Screen & Station Dropdowns */}
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs text-neutral-400 font-medium whitespace-nowrap">Station:</label>
+              <select
+                value={stationFilter}
+                onChange={(e) => setStationFilter(e.target.value as any)}
+                className="bg-neutral-950 border border-neutral-700 text-xs rounded-xl px-2.5 py-1.5 text-amber-300 font-medium focus:outline-none focus:border-amber-500"
+              >
+                <option value="ALL">All Stations</option>
+                <option value="POPCORN_WARMER">🍿 Popcorn Warmer</option>
+                <option value="BEVERAGE_DISPENSER">🥤 Beverage Dispenser</option>
+                <option value="FRY_STATION">🍟 Fry Station</option>
+                <option value="MAIN_KITCHEN">👨‍🍳 Main Kitchen</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs text-neutral-400 font-medium whitespace-nowrap">Audi:</label>
+              <select
+                value={screenFilter}
+                onChange={(e) => setScreenFilter(e.target.value)}
+                className="bg-neutral-950 border border-neutral-700 text-xs rounded-xl px-2.5 py-1.5 text-neutral-200 focus:outline-none focus:border-amber-500"
+              >
+                <option value="all">All Screens</option>
+                {uniqueScreens.map((scr) => (
+                  <option key={scr} value={scr}>
+                    {scr}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -339,6 +368,13 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
                               {item.flavor && (
                                 <span className="text-amber-300 block text-[11px]">Flavor: {item.flavor}</span>
                               )}
+                              <span className="inline-block mt-0.5 text-[9px] px-1.5 py-0.2 rounded bg-neutral-800 text-amber-300 font-mono">
+                                {item.station_id || (
+                                  item.name.toLowerCase().includes('popcorn') ? 'POPCORN_WARMER' :
+                                  item.name.toLowerCase().includes('coke') || item.name.toLowerCase().includes('pepsi') || item.name.toLowerCase().includes('sprite') || item.name.toLowerCase().includes('shake') || item.name.toLowerCase().includes('water') ? 'BEVERAGE_DISPENSER' :
+                                  item.name.toLowerCase().includes('fries') || item.name.toLowerCase().includes('nuggets') || item.name.toLowerCase().includes('nachos') ? 'FRY_STATION' : 'MAIN_KITCHEN'
+                                )}
+                              </span>
                             </div>
                           </div>
                           <span className="text-neutral-400 font-mono">₹{item.price * item.quantity}</span>

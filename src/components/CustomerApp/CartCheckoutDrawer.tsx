@@ -57,6 +57,11 @@ export const CartCheckoutDrawer: React.FC<CartCheckoutDrawerProps> = ({
       price: item.price,
       size: item.selectedSize,
       flavor: item.selectedFlavor,
+      station_id: item.station_id || (
+        item.name.toLowerCase().includes('popcorn') ? 'POPCORN_WARMER' :
+        item.name.toLowerCase().includes('coke') || item.name.toLowerCase().includes('pepsi') || item.name.toLowerCase().includes('sprite') || item.name.toLowerCase().includes('shake') || item.name.toLowerCase().includes('water') ? 'BEVERAGE_DISPENSER' :
+        item.name.toLowerCase().includes('fries') || item.name.toLowerCase().includes('nuggets') || item.name.toLowerCase().includes('nachos') ? 'FRY_STATION' : 'MAIN_KITCHEN'
+      ),
     }));
 
     const targetTheater = (currentSeat.theater_id ? theaterStore.getTheaterById(currentSeat.theater_id) : null) || theaterStore.getActiveTheater();

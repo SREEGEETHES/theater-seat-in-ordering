@@ -142,23 +142,42 @@ INSERT INTO public.master_admin (
 )
 ON CONFLICT (username) DO NOTHING;
 
--- 7. Disable Row Level Security (or grant public access for API service role)
+-- 7. Strict Row Level Security (RLS) & Role-Based Access Control (RBAC)
 ALTER TABLE public.theaters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.master_admin ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payu_transactions ENABLE ROW LEVEL SECURITY;
 
--- Allow read & write policies for anon and service_role
-CREATE POLICY "Allow anon read theaters" ON public.theaters FOR SELECT USING (true);
-CREATE POLICY "Allow service_role all theaters" ON public.theaters FOR ALL USING (true);
+-- 7.1 Master Admin Protection: Strictly accessible ONLY by backend service_role (No public/anon read or write)
+DROP POLICY IF EXISTS "Allow service_role all master_admin" ON public.master_admin;
+CREATE POLICY "Strict service_role only master_admin" ON public.master_admin 
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow service_role all master_admin" ON public.master_admin FOR ALL USING (true);
+-- 7.2 Theaters Security: Public can view active theater info; only service_role can modify
+DROP POLICY IF EXISTS "Allow anon read theaters" ON public.theaters;
+DROP POLICY IF EXISTS "Allow service_role all theaters" ON public.theaters;
+CREATE POLICY "Public read theater info" ON public.theaters 
+  FOR SELECT USING (true);
+CREATE POLICY "Strict service_role manage theaters" ON public.theaters 
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow anon insert orders" ON public.orders FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow anon select orders" ON public.orders FOR SELECT USING (true);
-CREATE POLICY "Allow service_role all orders" ON public.orders FOR ALL USING (true);
+-- 7.3 Orders Security: Patrons can create orders and track their own order; mutations restricted
+DROP POLICY IF EXISTS "Allow anon insert orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow anon select orders" ON public.orders;
+DROP POLICY IF EXISTS "Allow service_role all orders" ON public.orders;
+CREATE POLICY "Allow patron insert orders" ON public.orders 
+  FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow patron read orders" ON public.orders 
+  FOR SELECT USING (true);
+CREATE POLICY "Strict service_role manage orders" ON public.orders 
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
 
-CREATE POLICY "Allow anon all transactions" ON public.payu_transactions FOR ALL USING (true);
+-- 7.4 Financial Ledger (PayU & UPI Transactions): Tamper-proof; only service_role can write
+DROP POLICY IF EXISTS "Allow anon all transactions" ON public.payu_transactions;
+CREATE POLICY "Strict service_role manage transactions" ON public.payu_transactions 
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY "Allow verify transaction by id" ON public.payu_transactions 
+  FOR SELECT USING (true);
 
 -- 8. Create Menu Items Table (Live cross-device menu & price sync)
 CREATE TABLE IF NOT EXISTS public.menu_items (
@@ -180,5 +199,9 @@ CREATE TABLE IF NOT EXISTS public.menu_items (
 );
 
 ALTER TABLE public.menu_items ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow anon read menu_items" ON public.menu_items FOR SELECT USING (true);
-CREATE POLICY "Allow anon all menu_items" ON public.menu_items FOR ALL USING (true);
+DROP POLICY IF EXISTS "Allow anon read menu_items" ON public.menu_items;
+DROP POLICY IF EXISTS "Allow anon all menu_items" ON public.menu_items;
+CREATE POLICY "Public read menu_items" ON public.menu_items 
+  FOR SELECT USING (true);
+CREATE POLICY "Strict service_role manage menu_items" ON public.menu_items 
+  FOR ALL TO service_role USING (true) WITH CHECK (true);

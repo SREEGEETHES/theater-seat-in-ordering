@@ -1,4 +1,5 @@
 import { Theater, MerchantKYC, PayUConfig, TheaterAdminCredentials } from '../types';
+import { getClientSupabase } from './supabaseClient';
 
 const THEATERS_STORAGE_KEY = 'cinesnack_theaters_saas_v2';
 const ACTIVE_THEATER_KEY = 'cinesnack_active_theater_id';
@@ -289,6 +290,21 @@ class TheaterStore {
     });
     this.saveTheaters();
     this.notify();
+
+    // Async sync to Supabase database so login works immediately
+    const client = getClientSupabase();
+    if (client) {
+      const updates: any = {};
+      if (credentials.username) updates.admin_username = credentials.username;
+      if (credentials.password) updates.admin_password = credentials.password;
+      Promise.resolve(client.from('theaters').update(updates).eq('theater_id', theaterId))
+        .then(() => {
+          console.log(`[Supabase] Updated credentials in database for theater ${theaterId}`);
+        })
+        .catch((err) => {
+          console.warn('[Supabase] Failed to update credentials in database:', err);
+        });
+    }
   }
 
   public updateTheaterPrinter(theaterId: string, printer: Partial<Theater['printer']>) {
@@ -314,6 +330,39 @@ class TheaterStore {
     this.saveTheaters();
     this.setActiveTheaterId(created.theater_id);
     this.notify();
+
+    // Async sync to Supabase database
+    const client = getClientSupabase();
+    if (client) {
+      Promise.resolve(
+        client.from('theaters').upsert({
+          theater_id: created.theater_id,
+          name: created.name,
+          tagline: created.tagline,
+          city: created.city,
+          address: created.address,
+          admin_username: created.admin_credentials?.username || `admin_${created.theater_id.replace('th_', '')}`,
+          admin_password: created.admin_credentials?.password || 'admin@123',
+          payee_vpa: created.kyc.payee_vpa,
+          legal_business_name: created.kyc.legal_business_name,
+          company_pan: created.kyc.company_pan,
+          gstin: created.kyc.gstin,
+          bank_account_number: created.kyc.bank_account_number,
+          bank_ifsc: created.kyc.bank_ifsc,
+          bank_name: created.kyc.bank_name,
+          payu_merchant_key: created.payu.merchant_key,
+          payu_merchant_salt: created.payu.merchant_salt,
+          payu_environment: created.payu.environment,
+        }, { onConflict: 'theater_id' })
+      )
+        .then(() => {
+          console.log(`[Supabase] Synced new theater ${created.theater_id} to database`);
+        })
+        .catch((err) => {
+          console.warn('[Supabase] Failed to insert new theater to database:', err);
+        });
+    }
+
     return created;
   }
 

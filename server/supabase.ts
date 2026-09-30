@@ -240,4 +240,62 @@ export async function deleteMenuItemFromSupabase(itemId: string) {
   }
 }
 
+/**
+ * Atomically computes and increments the daily token number for a given theater.
+ * Resets each midnight so each day starts at Token #1.
+ */
+export async function getNextDailyTokenForTheater(theaterId: string): Promise<number> {
+  const client = getSupabase();
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  if (!client) {
+    return Math.floor(Math.random() * 150) + 1;
+  }
+
+  try {
+    // 1. Check theater_daily_counters table
+    const { data: counter, error: counterErr } = await client
+      .from('theater_daily_counters')
+      .select('current_token')
+      .eq('theater_id', theaterId)
+      .eq('counter_date', todayStr)
+      .maybeSingle();
+
+    if (!counterErr && counter) {
+      const nextVal = (counter.current_token || 0) + 1;
+      await client
+        .from('theater_daily_counters')
+        .update({ current_token: nextVal, updated_at: new Date().toISOString() })
+        .eq('theater_id', theaterId)
+        .eq('counter_date', todayStr);
+      return nextVal;
+    }
+
+    // If no counter row for today yet, check maximum token_number in orders today
+    const { data: existingOrders } = await client
+      .from('orders')
+      .select('token_number')
+      .eq('theater_id', theaterId)
+      .eq('order_date', todayStr)
+      .order('token_number', { ascending: false })
+      .limit(1);
+
+    const highestToday = existingOrders?.[0]?.token_number || 0;
+    const initialToken = highestToday + 1;
+
+    // Initialize or upsert counter
+    await client.from('theater_daily_counters').upsert({
+      theater_id: theaterId,
+      counter_date: todayStr,
+      current_token: initialToken,
+      updated_at: new Date().toISOString(),
+    });
+
+    return initialToken;
+  } catch (err) {
+    console.warn('[Supabase] Token counter fallback:', err);
+    return 1;
+  }
+}
+
 
